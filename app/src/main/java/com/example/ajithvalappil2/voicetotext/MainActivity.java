@@ -32,41 +32,11 @@ public class MainActivity extends ActionBarActivity{
 
     Button connectBlu;
     TextView voiceToText;
-    ListView mBluAdapter;
-    LinearLayout aMainLayout;
-    LinearLayout aBluListLayout;
-    ArrayAdapter<String> mArrayAdapter;
-    Switch tSwitch;
-    static List<String> items = new ArrayList<String>();
-    private SpeechRecognizer speech = null;
-    public OutputStream outStream = null;
-    public InputStream inStream = null;
-    static boolean processingComplete = false;
-    static final int REQUEST_ENABLE_BT = 0;
-    boolean showConnectedMsg = false;
-    int selectedBlueToothDevices = 0;
-    String inMsg = "";
-    boolean executeLoop = true;
     String message = "";
-    boolean blConnTaskCom = false;
-    //speech data
-    private final int REQ_CODE_SPEECH_INPUT = 100;
-    BluetoothController aBluetoothController = new BluetoothController();
-    public BluetoothAdapter btAdapter = null;
-    public BluetoothSocket btSocket = null;
-    public static String address = "88:C9:D0:94:DE:3F";
-    static boolean isDevicesConnected = false;
     private SpeechRecognizer mSpeechRecognizer;
     private Intent mSpeechRecognizerIntent;
-    private boolean mIsListening;
-    ReadData aReadData = new ReadData();
-    // Get UsbManager from Android.
     UsbManager manager = null;
-    // Find the first available driver.
     UsbSerialDriver driver = null;
-
-
-
 
     Handler handler = new Handler() {
         @Override
@@ -79,13 +49,6 @@ public class MainActivity extends ActionBarActivity{
                 Button connectBlu=(Button)findViewById(R.id.button);
                 if (msgData!=null && msgData.equalsIgnoreCase("Connected")){
                     connectBlu.setText("Disconnect");
-                    btSocket = aBluetoothController.getBtSocket();
-                    outStream = aBluetoothController.getOutStream();
-                    inStream = aBluetoothController.getInStream();
-                    aReadData.setHandler(handler);
-                    aReadData.setBtSocket(btSocket);
-                    aReadData.setInStream(inStream);
-                    aReadData.start();
                 }else if (msgData!=null && msgData.equalsIgnoreCase("Disconnected")){
                     connectBlu.setText("Connect");
                 }
@@ -121,15 +84,7 @@ public class MainActivity extends ActionBarActivity{
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         connectBlu=(Button)findViewById(R.id.button);
-        tSwitch = (Switch)findViewById(R.id.switch1);
         voiceToText=(TextView)findViewById(R.id.textView);
-        mBluAdapter = (ListView)findViewById(R.id.listView);
-        mArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_single_choice, items);
-        mBluAdapter.setAdapter(mArrayAdapter);
-        mBluAdapter.setChoiceMode(mBluAdapter.CHOICE_MODE_SINGLE);
-        aMainLayout = (LinearLayout)findViewById(R.id.mainlayout);
-        aBluListLayout = (LinearLayout)findViewById(R.id.bluToothList);
-
         // Get UsbManager from Android.
         manager = (UsbManager) getSystemService(Context.USB_SERVICE);
         // Find the first available driver.
@@ -137,33 +92,6 @@ public class MainActivity extends ActionBarActivity{
 
         try {
             System.out.println("Starting.....");
-            aBluetoothController.setProcessType("init");
-            System.out.println("init.....");
-            System.out.println("Thread started.....");
-            aBluetoothController.start();
-            System.out.println("wait for complete started.....");
-            aBluetoothController.join();
-            System.out.println("Complete.....");
-            System.out.println("aBluetoothController.isDeviceHasBluetooth() >>" + aBluetoothController.isDeviceHasBluetooth());
-            System.out.println("aBluetoothController.isDeviceBluetoothIsOn() >>" + aBluetoothController.isDeviceBluetoothIsOn());
-            if (aBluetoothController.isDeviceHasBluetooth()){
-                if (!aBluetoothController.isDeviceBluetoothIsOn()){
-                    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-                    btAdapter = aBluetoothController.getBtAdapter();
-                }else{
-                    btAdapter = aBluetoothController.getBtAdapter();
-                }
-                aBluetoothController = new BluetoothController();
-                aBluetoothController.setBtAdapter(btAdapter);
-                aBluetoothController.setProcessType("getlist");
-                System.out.println("init.....");
-                System.out.println("Thread started.....");
-                aBluetoothController.start();
-                System.out.println("wait for complete started.....");
-            }else{
-                finish();
-            }
         }catch (Exception ee){
             ee.printStackTrace();
         }
@@ -190,109 +118,11 @@ public class MainActivity extends ActionBarActivity{
 
     public void openBluetooth(View view) {
         System.out.println("clicked the connect button");
-        if (btAdapter!=null){
-            try {
-                if (isDevicesConnected){
-                    try {
-                        if (btSocket!=null)
-                            btSocket.close();
-                        isDevicesConnected = false;
-                    } catch (IOException e2) {
-                        System.out.println("Fatal Error In onResume() and unable to close socket during connection failure" + e2.getMessage() + ".");
-                        isDevicesConnected = false;
-                    }
-                    connectBlu.setText("Connect");
-                    aMainLayout.setVisibility(view.VISIBLE);
-                    aBluListLayout.setVisibility(view.INVISIBLE);
-                }else{
-                    System.out.println("Showing List.....");
-                    mBluAdapter.setAdapter(mArrayAdapter);
-                    aMainLayout.setVisibility(view.INVISIBLE);
-                    aBluListLayout.setVisibility(view.VISIBLE);
-                }
-            }catch(Exception e){
-                e.printStackTrace();
-            }
-        }
-    }
 
-    public void blueSelected(View view) {
-        if (btAdapter!=null){
-            try {
-                int selectedIndex = mBluAdapter.getCheckedItemPosition();
-                String selectedDevice  = mArrayAdapter.getItem(selectedIndex);
-                if (selectedDevice!=null && selectedDevice.contains("\n")) {
-                    String data[] = selectedDevice.split("\n");
-                    String deviceName = "";
-                    String deviceAddress = "";
-                    if (data.length == 2) {
-                        deviceName = data[0];
-                        deviceAddress = data[1];
-                    }
-                    address = deviceAddress;
-                }
-                if (!isDevicesConnected){
-                    aBluetoothController = new BluetoothController();
-                    aBluetoothController.setBtAdapter(btAdapter);
-                    aBluetoothController.setProcessType("setup");
-                    aBluetoothController.setHandler(handler);
-                    aBluetoothController.address =  MainActivity.address;
-                    System.out.println("init.....");
-                    System.out.println("Thread started.....");
-                    aBluetoothController.start();
-                    //readVoiceFromText();
-                    aMainLayout.setVisibility(view.VISIBLE);
-                    aBluListLayout.setVisibility(view.INVISIBLE);
-                    aMainLayout.setVisibility(view.VISIBLE);
-                    aBluListLayout.setVisibility(view.INVISIBLE);
-                    voiceToText.setText("");
-                    mSpeechRecognizer.startListening(mSpeechRecognizerIntent);
-                    Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show();
-                }else{
-                    try {
-                        if (btSocket!=null)
-                            btSocket.close();
-                        isDevicesConnected = false;
-                    } catch (IOException e2) {
-                        System.out.println("Fatal Error In onResume() and unable to close socket during connection failure" + e2.getMessage() + ".");
-                        isDevicesConnected = false;
-                    }
-                    connectBlu.setText("Connect");
-                    voiceToText.setText("");
-                    aMainLayout.setVisibility(view.VISIBLE);
-                    aBluListLayout.setVisibility(view.INVISIBLE);
-                }
-            }catch(Exception e){
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public void cancel(View view) {
-        if (tSwitch.isChecked()){
-            voiceToText.setText("true");
-        }else{
-            voiceToText.setText("false");
-        }
-    }
-
-    public void toggle(View view) {
-        aMainLayout.setVisibility(view.VISIBLE);
-        aMainLayout.setVisibility(view.VISIBLE);
-        aBluListLayout.setVisibility(view.INVISIBLE);
     }
 
     public void sendMessage(String message){
-        byte[] msgBuffer = message.getBytes();
-        try {
-            if (outStream!=null) {
-                outStream.write(msgBuffer);
-            }else{
-                Toast.makeText(this, "Please connect to a device...", Toast.LENGTH_SHORT).show();
-            }
-        } catch (IOException e) {
-            System.out.println("In onResume() and an exception occurred during write: " + e.getMessage());
-        }
+
     }
 
     @Override
@@ -303,19 +133,6 @@ public class MainActivity extends ActionBarActivity{
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                //if user pressed "yes", then he is allowed to exit from application
-                if (mSpeechRecognizer != null){
-                    mSpeechRecognizer.stopListening();
-                    mSpeechRecognizer.destroy();
-                }
-                try {
-                    if (btSocket!=null)
-                        btSocket.close();
-                    isDevicesConnected = false;
-                } catch (IOException e2) {
-                    System.out.println("Fatal Error In onResume() and unable to close socket during connection failure" + e2.getMessage() + ".");
-                    isDevicesConnected = false;
-                }
                 finish();
             }
         });
