@@ -278,6 +278,7 @@ public class MainActivity extends ActionBarActivity{
 
     public void toggle(View view) {
         aMainLayout.setVisibility(view.VISIBLE);
+        aMainLayout.setVisibility(view.VISIBLE);
         aBluListLayout.setVisibility(view.INVISIBLE);
     }
 
