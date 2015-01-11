@@ -1,4 +1,4 @@
-package com.example.ajithvalappil2.voicetotext;
+package com.example.ajithvalappil2.serialcomm;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

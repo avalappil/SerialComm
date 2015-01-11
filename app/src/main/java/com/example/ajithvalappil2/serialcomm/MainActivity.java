@@ -1,4 +1,4 @@
-package com.example.ajithvalappil2.voicetotext;
+package com.example.ajithvalappil2.serialcomm;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -11,20 +11,14 @@ import android.app.AlertDialog;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
-import java.io.InputStream;
+
 import java.util.*;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothSocket;
-import java.io.IOException;
-import java.io.OutputStream;
-import android.speech.tts.TextToSpeech;
+
 import android.os.Handler;
 import android.os.Message;
-import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
+
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
-import com.hoho.android.usbserial.driver.UsbSerialProber;
-import com.hoho.android.usbserial.util.HexDump;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 
 
